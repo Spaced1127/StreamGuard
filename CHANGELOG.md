@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.2 — 2026-11-01
+
+### Added
+
+- `npm run package` produces distributable Chrome ZIP and Firefox XPI archives,
+  SHA-256 checksums and generated release notes.
+- Tag-triggered GitHub Release workflow that builds, tests and attaches the
+  artifacts.
+- Download instructions and [publishing/signing guide](docs/PUBLISHING.md).
+
 ## 0.3.1 — 2026-11-01
 
 ### Fixed

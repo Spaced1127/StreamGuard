@@ -8,10 +8,24 @@ playlists inside the player, detects ad breaks, and swaps to a clean alternate
 player-type feed when one is available. When it is not, it blanks stitched ad
 segments locally so their audio/video never reaches the decoder.
 
-> **Status: v0.3.1 — playlist shield + clean backup-stream swap.**
+> **Status: v0.3.2 — playlist shield + clean backup-stream swap.**
 > Live-tested against real Twitch stitched-ad breaks in a game category. Twitch
 > changes its ad delivery regularly; see [Limitations](#limitations) and
 > [Roadmap](#roadmap).
+
+## Download
+
+Get the latest build from
+[GitHub Releases](https://github.com/Spaced1127/StreamGuard/releases/latest).
+
+- **Chrome / Brave / Edge** — download `streamguard-chrome-v*.zip`, unzip it,
+  then load it as an unpacked extension with Developer mode enabled.
+- **Firefox 142+** — download `streamguard-firefox-v*.xpi`. The attached XPI is
+  unsigned, so current Firefox loads it as a temporary add-on. For permanent
+  distribution, use the AMO-signed build once published.
+
+See [docs/PUBLISHING.md](docs/PUBLISHING.md) for store submission and signing
+details, and `SHA256SUMS.txt` in each release for verification.
 
 ## What works today
 
