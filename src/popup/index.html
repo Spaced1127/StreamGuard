@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Twitch Shield</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path
+              d="M12 3l7 3v5.2c0 4.5-2.9 8.1-7 9.8-4.1-1.7-7-5.3-7-9.8V6l7-3z"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M9.4 12.2l1.8 1.8 3.5-3.8"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </div>
+        <div>
+          <h1>Twitch Shield</h1>
+          <p class="tagline">Local ad shield</p>
+        </div>
+        <button
+          id="power"
+          class="power"
+          type="button"
+          role="switch"
+          aria-checked="true"
+          aria-label="Toggle ad shield"
+          title="Pause ad shield"
+        >
+          <span></span>
+        </button>
+      </header>
+
+      <section class="card status" aria-live="polite">
+        <div class="status-top">
+          <span class="status-dot" id="status-dot"></span>
+          <span id="status-label">Shield active</span>
+          <span class="channel" id="channel"></span>
+        </div>
+        <p class="status-detail" id="status-detail">Connecting to the player…</p>
+      </section>
+
+      <section class="stats" aria-label="Session statistics">
+        <div class="stat">
+          <span id="stat-breaks">0</span>
+          <label for="stat-breaks">Ad breaks</label>
+        </div>
+        <div class="stat">
+          <span id="stat-segments">0</span>
+          <label for="stat-segments">Segments</label>
+        </div>
+        <div class="stat">
+          <span id="stat-sideads">0</span>
+          <label for="stat-sideads">Side ads</label>
+        </div>
+        <div class="stat">
+          <span id="stat-backups">0</span>
+          <label for="stat-backups">Backups</label>
+        </div>
+      </section>
+
+      <section class="card settings" aria-label="Settings">
+        <label class="row">
+          <div>
+            <span>Clean backup stream</span>
+            <small>Use an ad-free alternate feed during breaks</small>
+          </div>
+          <input type="checkbox" id="backupStream" />
+        </label>
+        <label class="row">
+          <div>
+            <span>Hide side &amp; chat ads</span>
+            <small>Mute and hide Amazon-hosted video ads</small>
+          </div>
+          <input type="checkbox" id="hideSideAds" />
+        </label>
+        <label class="row">
+          <div>
+            <span>Show blocking badge</span>
+            <small>Overlay on the player during breaks</small>
+          </div>
+          <input type="checkbox" id="showOverlay" />
+        </label>
+        <label class="row">
+          <div>
+            <span>Rewrite ad trackers</span>
+            <small>Neutralize click-through URLs in playlists</small>
+          </div>
+          <input type="checkbox" id="rewriteTrackingUrls" />
+        </label>
+
+        <details>
+          <summary>Advanced</summary>
+          <label class="row">
+            <div>
+              <span>Debug logging</span>
+              <small>Console output prefixed [TwitchShield]</small>
+            </div>
+            <input type="checkbox" id="debug" />
+          </label>
+          <p class="advanced-note">
+            Client-side ad requests seen: <span id="stat-csai">0</span>
+          </p>
+        </details>
+      </section>
+
+      <footer>
+        <button id="reset" type="button">Reset session</button>
+        <span class="version" id="version"></span>
+      </footer>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>

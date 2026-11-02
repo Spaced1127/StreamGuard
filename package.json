@@ -1,0 +1,28 @@
+{
+  "name": "twitch-shield",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "A local ad shield for Twitch live streams.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "build:chrome": "node scripts/build.mjs --target=chrome",
+    "build:firefox": "node scripts/build.mjs --target=firefox",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check": "npm run typecheck && npm run test"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.3.7",
+    "@types/node": "^26.6.6",
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5",
+    "vitest": "^5.0.5"
+  }
+}

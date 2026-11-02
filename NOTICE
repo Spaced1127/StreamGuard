@@ -1,0 +1,28 @@
+# Third-party notices
+
+## TwitchAdSolutions
+
+This project implements ideas and heuristics from
+[TwitchAdSolutions](https://github.com/ryanbr/TwitchAdSolutions), which is
+distributed under the MIT License, Copyright (c) 2020-present TwitchAdSolutions
+Contributors.
+
+In particular:
+
+- The tiny blank fragmented MP4 init segment in
+  `src/core/blank-media.ts` is taken from the project.
+- The ad marker families (`twitch-stitched-*`, `EXT-X-CUE-OUT`,
+  `twitch-maf-ad`, `X-TV-TWITCH-AD-*`), the
+  `,live` segment classification, prefetch-hint removal and clean-snapshot
+  recovery strategy follow its field-tested approach.
+- The alternate-player-type PlaybackAccessToken and clean-backup stream
+  strategy follows the project's vaft implementation.
+
+Twitch Shield is an independent implementation. It does not include the
+upstream userscript code, and it is not affiliated with or endorsed by
+TwitchAdSolutions, Twitch Interactive, or Amazon.
+
+## Twitch
+
+Twitch and the Twitch logo are trademarks of Twitch Interactive, Inc. This
+project is not affiliated with Twitch.
