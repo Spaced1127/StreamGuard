@@ -477,7 +477,7 @@ export class PageRuntime {
       if (payload?.url) this.noteCsaiRequest(payload.url);
     } else if (message.kind === 'log' && this.settings.debug) {
       const payload = message.payload as { message?: string };
-      if (payload?.message) console.log('[TwitchShield:worker]', payload.message);
+      if (payload?.message) console.log('[StreamGuard:worker]', payload.message);
     }
   }
 
@@ -519,7 +519,7 @@ export class PageRuntime {
   log(...args: unknown[]): void {
     if (!this.settings.debug) return;
     try {
-      console.log('[TwitchShield]', ...args);
+      console.log('[StreamGuard]', ...args);
     } catch {
       // Console can be unavailable in exotic contexts.
     }

@@ -96,12 +96,12 @@ function renderBadge(tabId: number, stats: TabStats | undefined): void {
     action.setTitle({
       tabId,
       title: !stats
-        ? 'Twitch Shield'
+        ? 'StreamGuard'
         : !stats.enabled
-          ? 'Twitch Shield — paused'
+          ? 'StreamGuard — paused'
           : stats.blocking
-            ? `Twitch Shield — blocking ads${stats.channel ? ` on ${stats.channel}` : ''}`
-            : `Twitch Shield — active${stats.channel ? ` on ${stats.channel}` : ''}`,
+            ? `StreamGuard — blocking ads${stats.channel ? ` on ${stats.channel}` : ''}`
+            : `StreamGuard — active${stats.channel ? ` on ${stats.channel}` : ''}`,
     });
   } catch {
     // The tab may have closed between the event and this call.

@@ -39,7 +39,7 @@ export class AdVideoHider {
     this.unsubscribe?.();
     this.unsubscribe = null;
     for (const video of document.querySelectorAll<HTMLVideoElement>(
-      'video[data-twitch-shield-hidden="1"]',
+      'video[data-streamguard-hidden="1"]',
     )) {
       this.restore(video);
     }
@@ -51,7 +51,7 @@ export class AdVideoHider {
 
     for (const video of document.querySelectorAll<HTMLVideoElement>('video')) {
       if (!enabled) {
-        if (video.dataset.twitchShieldHidden === '1') this.restore(video);
+        if (video.dataset.streamguardHidden === '1') this.restore(video);
         continue;
       }
 
@@ -63,18 +63,18 @@ export class AdVideoHider {
 
       // The live player is a MediaSource blob; never touch it.
       if (!source || source.startsWith('blob:')) {
-        if (video.dataset.twitchShieldHidden === '1' && !AD_VIDEO_SRC_RE.test(source)) {
+        if (video.dataset.streamguardHidden === '1' && !AD_VIDEO_SRC_RE.test(source)) {
           this.restore(video);
         }
         continue;
       }
 
       if (!AD_VIDEO_SRC_RE.test(source)) {
-        if (video.dataset.twitchShieldHidden === '1') this.restore(video);
+        if (video.dataset.streamguardHidden === '1') this.restore(video);
         continue;
       }
 
-      if (video.dataset.twitchShieldHidden === '1') continue;
+      if (video.dataset.streamguardHidden === '1') continue;
 
       const original: OriginalVideoState = {
         display: video.style.display,
@@ -94,7 +94,7 @@ export class AdVideoHider {
       }
 
       video.style.setProperty('display', 'none', 'important');
-      video.dataset.twitchShieldHidden = '1';
+      video.dataset.streamguardHidden = '1';
       this.originals.set(video, original);
 
       if (!this.counted.has(video)) {
@@ -112,6 +112,6 @@ export class AdVideoHider {
       if (original.mutedByUs) video.muted = original.muted;
       this.originals.delete(video);
     }
-    delete video.dataset.twitchShieldHidden;
+    delete video.dataset.streamguardHidden;
   }
 }

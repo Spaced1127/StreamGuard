@@ -1,4 +1,4 @@
-"""Generate the Twitch Shield icon set.
+"""Generate the StreamGuard icon set.
 
 Run from the repo root: python scripts/icons.py
 Requires Pillow. Committed PNGs are used by the build, so this is only needed

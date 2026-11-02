@@ -18,7 +18,7 @@ In particular:
 - The alternate-player-type PlaybackAccessToken and clean-backup stream
   strategy follows the project's vaft implementation.
 
-Twitch Shield is an independent implementation. It does not include the
+StreamGuard is an independent implementation. It does not include the
 upstream userscript code, and it is not affiliated with or endorsed by
 TwitchAdSolutions, Twitch Interactive, or Amazon.
 

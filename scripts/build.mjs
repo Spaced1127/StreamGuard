@@ -45,7 +45,7 @@ const ICONS = {
 function workerRuntimeAsString() {
   const virtualId = '\0virtual:worker-runtime';
   return {
-    name: 'twitch-shield-worker-runtime',
+    name: 'streamguard-worker-runtime',
     resolveId(id) {
       if (id === 'virtual:worker-runtime') return virtualId;
       return null;
@@ -75,12 +75,12 @@ function workerRuntimeAsString() {
 function manifestFor(target) {
   const manifest = {
     manifest_version: 3,
-    name: 'Twitch Shield',
+    name: 'StreamGuard',
     version,
     description: 'A local ad shield for Twitch live streams.',
     icons: ICONS,
     action: {
-      default_title: 'Twitch Shield',
+      default_title: 'StreamGuard',
       default_popup: 'popup.html',
       default_icon: ICONS,
     },
@@ -110,7 +110,7 @@ function manifestFor(target) {
   } else {
     manifest.browser_specific_settings = {
       gecko: {
-        id: 'twitch-shield@local',
+        id: 'streamguard@local',
         strict_min_version: '128.0',
       },
     };
@@ -167,8 +167,8 @@ async function buildTarget(target) {
 
   const pageBundle = await readFile(path.join(outDir, 'page.js'), 'utf8');
   for (const marker of [
-    '__TWITCH_SHIELD_CONFIG__',
-    '__twitchShieldWorkerRuntimeInstalled',
+    '__STREAMGUARD_CONFIG__',
+    '__streamguardWorkerRuntimeInstalled',
     'player worker failed to start',
   ]) {
     if (!pageBundle.includes(marker)) {

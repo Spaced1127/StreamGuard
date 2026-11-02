@@ -89,7 +89,7 @@ export class Overlay {
     if (!player) return;
 
     this.host = document.createElement('div');
-    this.host.setAttribute('data-twitch-shield', 'overlay');
+    this.host.setAttribute('data-streamguard', 'overlay');
     this.host.style.cssText =
       'position:absolute;top:12px;left:12px;z-index:9999;pointer-events:none;display:none;';
     this.host.attachShadow({ mode: 'open' }).innerHTML = OVERLAY_HTML;

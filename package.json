@@ -1,10 +1,29 @@
 {
-  "name": "twitch-shield",
-  "version": "0.2.1",
+  "name": "streamguard",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
-  "description": "A local ad shield for Twitch live streams.",
+  "description": "A local-first ad shield for Twitch live streams.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Spaced1127/StreamGuard.git"
+  },
+  "homepage": "https://github.com/Spaced1127/StreamGuard#readme",
+  "bugs": {
+    "url": "https://github.com/Spaced1127/StreamGuard/issues"
+  },
+  "keywords": [
+    "twitch",
+    "adblock",
+    "browser-extension",
+    "chrome-extension",
+    "firefox-extension",
+    "brave",
+    "manifest-v3",
+    "hls",
+    "typescript"
+  ],
   "engines": {
     "node": ">=20"
   },

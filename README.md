@@ -1,4 +1,6 @@
-# Twitch Shield
+# StreamGuard
+
+[![CI](https://github.com/Spaced1127/StreamGuard/actions/workflows/ci.yml/badge.svg)](https://github.com/Spaced1127/StreamGuard/actions/workflows/ci.yml)
 
 A local-first ad shield for Twitch live streams. It runs entirely in your
 browser: no proxy server, no account, no telemetry. It reads Twitch's HLS
@@ -6,7 +8,7 @@ playlists inside the player, detects ad breaks, and swaps to a clean alternate
 player-type feed when one is available. When it is not, it blanks stitched ad
 segments locally so their audio/video never reaches the decoder.
 
-> **Status: v0.2.1 — playlist shield + clean backup-stream swap.**
+> **Status: v0.3.0 — playlist shield + clean backup-stream swap.**
 > Live-tested against real Twitch stitched-ad breaks in a game category. Twitch
 > changes its ad delivery regularly; see [Limitations](#limitations) and
 > [Roadmap](#roadmap).
@@ -66,6 +68,8 @@ segments locally so their audio/video never reaches the decoder.
 Requirements: Node 20+.
 
 ```bash
+git clone https://github.com/Spaced1127/StreamGuard.git
+cd StreamGuard
 npm install
 npm run build
 ```
@@ -198,7 +202,7 @@ The worker runtime is bundled to a string at build time and embedded in
 | Hide side & chat ads | on | Hides/mutes `<video>` elements on Amazon's ad CDN. |
 | Show blocking badge | on | Player pill during a detected break. |
 | Rewrite ad trackers | on | Replaces `X-TV-TWITCH-AD-*-URL` values with twitch.tv. |
-| Debug logging | off | `[TwitchShield]` console output. |
+| Debug logging | off | `[StreamGuard]` console output. |
 
 Settings are stored in `chrome.storage.local` / `browser.storage.local` and
 propagated to open tabs immediately.
@@ -244,7 +248,7 @@ are implemented and live-tested.
 The blank fMP4 constant, marker families and the alternate-player-type/clean
 backup strategy are informed by
 [TwitchAdSolutions](https://github.com/ryanbr/TwitchAdSolutions) (MIT). See
-[NOTICE](NOTICE). Twitch Shield is an independent implementation and is not
+[NOTICE](NOTICE). StreamGuard is an independent implementation and is not
 affiliated with Twitch Interactive.
 
 ## License

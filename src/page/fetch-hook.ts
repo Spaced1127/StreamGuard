@@ -13,8 +13,8 @@ import type { PageRuntime } from './runtime';
  * embeds, and any player variant that runs on the main thread.
  */
 export function installPageFetchHook(runtime: PageRuntime): void {
-  const existing = window.fetch as typeof fetch & { __twitchShieldPatched?: boolean };
-  if (existing.__twitchShieldPatched) return;
+  const existing = window.fetch as typeof fetch & { __streamguardPatched?: boolean };
+  if (existing.__streamguardPatched) return;
 
   const nativeFetch = existing.bind(window);
 
@@ -79,8 +79,8 @@ export function installPageFetchHook(runtime: PageRuntime): void {
     }
   };
 
-  const masked = shieldFetch as typeof shieldFetch & { __twitchShieldPatched?: boolean };
-  masked.__twitchShieldPatched = true;
+  const masked = shieldFetch as typeof shieldFetch & { __streamguardPatched?: boolean };
+  masked.__streamguardPatched = true;
 
   // Passive feature-detection by the page should still see a native function.
   try {

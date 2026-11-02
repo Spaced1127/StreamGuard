@@ -22,13 +22,13 @@ import {
 import { isTokenResponseMessage, isWorkerConfigMessage } from '../shared/messages';
 import type { PlaylistEventPayload, WorkerConfig } from '../shared/types';
 
-declare const __TWITCH_SHIELD_CONFIG__: WorkerConfig;
+declare const __STREAMGUARD_CONFIG__: WorkerConfig;
 
 interface ShieldWorkerGlobal {
   fetch: typeof fetch;
   postMessage: (message: unknown) => void;
   addEventListener: (type: 'message', listener: (event: MessageEvent) => void) => void;
-  __twitchShieldWorkerRuntimeInstalled?: boolean;
+  __streamguardWorkerRuntimeInstalled?: boolean;
 }
 
 interface ChannelBackup {
@@ -101,10 +101,10 @@ function summarizePlaylist(text: string): Record<string, unknown> {
  * player makes can be inspected locally.
  */
 function boot(): void {
-  if (scope.__twitchShieldWorkerRuntimeInstalled) return;
-  scope.__twitchShieldWorkerRuntimeInstalled = true;
+  if (scope.__streamguardWorkerRuntimeInstalled) return;
+  scope.__streamguardWorkerRuntimeInstalled = true;
 
-  let config: WorkerConfig = { ...__TWITCH_SHIELD_CONFIG__ };
+  let config: WorkerConfig = { ...__STREAMGUARD_CONFIG__ };
   const engine = new PlaylistEngine();
   const nativeFetch = scope.fetch.bind(scope);
   const nativePostMessage = scope.postMessage.bind(scope);
@@ -122,7 +122,7 @@ function boot(): void {
   const log = (...args: unknown[]): void => {
     if (!config.debug) return;
     try {
-      console.log('[TwitchShield:worker]', ...args);
+      console.log('[StreamGuard:worker]', ...args);
     } catch {
       // Ignore.
     }
@@ -138,7 +138,7 @@ function boot(): void {
           }
         })
         .join(' ');
-      nativePostMessage({ __twitchShieldWorker: 1, kind: 'log', payload: { message } });
+      nativePostMessage({ __streamguardWorker: 1, kind: 'log', payload: { message } });
     } catch {
       // Ignore.
     }
@@ -146,7 +146,7 @@ function boot(): void {
 
   const emit = (kind: 'playlist' | 'csai', payload: unknown): void => {
     try {
-      nativePostMessage({ __twitchShieldWorker: 1, kind, payload });
+      nativePostMessage({ __streamguardWorker: 1, kind, payload });
     } catch {
       // Ignore.
     }
@@ -164,7 +164,7 @@ function boot(): void {
 
       try {
         nativePostMessage({
-          __twitchShieldWorker: 1,
+          __streamguardWorker: 1,
           kind: 'token-request',
           payload: { id, channel: channelName, playerType },
         });

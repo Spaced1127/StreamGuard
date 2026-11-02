@@ -15,7 +15,7 @@ export interface ShieldSettings {
   backupStream: boolean;
   /** Show the small "blocking" badge over the player during breaks. */
   showOverlay: boolean;
-  /** Verbose console diagnostics, prefixed with [TwitchShield]. */
+  /** Verbose console diagnostics, prefixed with [StreamGuard]. */
   debug: boolean;
 }
 
@@ -98,7 +98,7 @@ export interface TokenRequestPayload {
 }
 
 export interface WorkerMessage {
-  __twitchShieldWorker: 1;
+  __streamguardWorker: 1;
   kind: 'playlist' | 'csai' | 'log' | 'token-request';
   payload:
     | PlaylistEventPayload

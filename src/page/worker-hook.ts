@@ -37,12 +37,12 @@ function fetchWorkerSourceSync(url: string): string | null {
 
 function buildWorkerSource(twitchSource: string, config: WorkerConfig): string {
   return [
-    `var __TWITCH_SHIELD_CONFIG__ = ${JSON.stringify(config)};`,
+    `var __STREAMGUARD_CONFIG__ = ${JSON.stringify(config)};`,
     workerRuntimeSource,
     // Twitch's player is a classic worker script. A direct top-level eval keeps
     // its var/function declarations in global scope, exactly as the original
     // blob would.
-    `try { eval(${JSON.stringify(twitchSource)}); } catch (error) { try { console.error('[TwitchShield] player worker failed to start', error); } catch (_) {} }`,
+    `try { eval(${JSON.stringify(twitchSource)}); } catch (error) { try { console.error('[StreamGuard] player worker failed to start', error); } catch (_) {} }`,
   ].join('\n;\n');
 }
 
@@ -55,8 +55,8 @@ export function installWorkerHook(runtime: PageRuntime): void {
   const NativeWorker = window.Worker;
   if (!NativeWorker) return;
 
-  const existing = NativeWorker as typeof Worker & { __twitchShieldPatched?: boolean };
-  if (existing.__twitchShieldPatched) return;
+  const existing = NativeWorker as typeof Worker & { __streamguardPatched?: boolean };
+  if (existing.__streamguardPatched) return;
 
   class ShieldWorker extends NativeWorker {
     constructor(url: string | URL, options?: WorkerOptions) {
@@ -67,7 +67,7 @@ export function installWorkerHook(runtime: PageRuntime): void {
         const href = typeof url === 'string' ? url : url.href;
         if (options?.type !== 'module' && isTwitchWorkerUrl(href)) {
           const source = fetchWorkerSourceSync(href);
-          if (source && !source.includes('__twitchShieldWorkerRuntimeInstalled')) {
+          if (source && !source.includes('__streamguardWorkerRuntimeInstalled')) {
             const blob = new Blob([buildWorkerSource(source, runtime.getWorkerConfig())], {
               type: 'application/javascript',
             });
@@ -107,7 +107,7 @@ export function installWorkerHook(runtime: PageRuntime): void {
 
             void runtime.getPlaybackToken(request.channel, request.playerType).then((token) => {
               try {
-                this.postMessage({ __twitchShieldTokenResponse: 1, id: request.id, token });
+                this.postMessage({ __streamguardTokenResponse: 1, id: request.id, token });
               } catch {
                 // Worker may have been terminated between request and reply.
               }
@@ -134,7 +134,7 @@ export function installWorkerHook(runtime: PageRuntime): void {
     // Non-fatal.
   }
 
-  (ShieldWorker as typeof Worker & { __twitchShieldPatched?: boolean }).__twitchShieldPatched =
+  (ShieldWorker as typeof Worker & { __streamguardPatched?: boolean }).__streamguardPatched =
     true;
 
   try {
@@ -150,7 +150,7 @@ export function installWorkerHook(runtime: PageRuntime): void {
   runtime.onSettingsChange((config) => {
     for (const worker of activeWorkers) {
       try {
-        worker.postMessage({ __twitchShieldConfig: 1, config });
+        worker.postMessage({ __streamguardConfig: 1, config });
       } catch {
         activeWorkers.delete(worker);
       }

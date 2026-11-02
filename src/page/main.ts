@@ -8,7 +8,7 @@ import { installWorkerHook } from './worker-hook';
 
 declare global {
   interface Window {
-    __twitchShieldInstalled?: boolean;
+    __streamguardInstalled?: boolean;
   }
 }
 
@@ -44,8 +44,8 @@ function shouldRunHere(): boolean {
 }
 
 function boot(): void {
-  if (window.__twitchShieldInstalled || !shouldRunHere()) return;
-  window.__twitchShieldInstalled = true;
+  if (window.__streamguardInstalled || !shouldRunHere()) return;
+  window.__streamguardInstalled = true;
 
   const runtime = new PageRuntime();
   installPageFetchHook(runtime);
@@ -78,7 +78,7 @@ try {
   boot();
 } catch (error) {
   try {
-    console.error('[TwitchShield] failed to initialize', error);
+    console.error('[StreamGuard] failed to initialize', error);
   } catch {
     // Ignore.
   }

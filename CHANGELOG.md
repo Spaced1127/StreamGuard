@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.3.0 — 2026-11-01
+
+### Changed
+
+- Rebranded the project and extension from Twitch Shield to **StreamGuard**.
+- Changed the Firefox add-on ID to `streamguard@local`; reload the temporary
+  add-on after upgrading.
+- Renamed internal messaging/config namespaces and console prefixes to
+  StreamGuard.
+
+### Added
+
+- GitHub Actions CI: TypeScript check, Vitest suite, and Chrome/Firefox builds.
+
 ## 0.2.1 — 2026-11-01
 
 ### Fixed

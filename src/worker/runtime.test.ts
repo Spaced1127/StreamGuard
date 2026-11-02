@@ -106,7 +106,7 @@ async function bootWorker(options: BootOptions) {
         for (const listener of listeners) {
           listener({
             data: {
-              __twitchShieldTokenResponse: 1,
+              __streamguardTokenResponse: 1,
               id: payload?.id,
               token,
             },
@@ -117,7 +117,7 @@ async function bootWorker(options: BootOptions) {
   };
 
   const context = vm.createContext({
-    __TWITCH_SHIELD_CONFIG__: {
+    __STREAMGUARD_CONFIG__: {
       enabled: true,
       rewriteTrackingUrls: true,
       backupStream: true,
