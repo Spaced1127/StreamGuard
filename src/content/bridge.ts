@@ -14,17 +14,35 @@ let currentSettings: ShieldSettings = { ...DEFAULT_SETTINGS };
 function sendToBackground(message: unknown): void {
   try {
     ext.runtime.sendMessage(message, () => {
-      // Swallow "receiving end does not exist" while the worker restarts.
-      void ext.runtime.lastError;
+      const error = ext.runtime.lastError;
+      try {
+        document.documentElement.setAttribute(
+          'data-streamguard-background',
+          error ? 'error' : 'ok',
+        );
+      } catch {
+        // Ignore.
+      }
     });
   } catch {
-    // Ignore.
+    try {
+      document.documentElement.setAttribute('data-streamguard-background', 'error');
+    } catch {
+      // Ignore.
+    }
   }
 }
 
 async function init(): Promise<void> {
   currentSettings = await getStoredSettings();
   postToWindow('settings', currentSettings);
+  // Diagnostic marker: proves the isolated-world bridge and the extension
+  // storage API are alive (useful when automating Firefox/Chrome tests).
+  try {
+    document.documentElement.setAttribute('data-streamguard-bridge', 'ready');
+  } catch {
+    // Ignore.
+  }
 }
 
 void init();

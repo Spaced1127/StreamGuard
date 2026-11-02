@@ -92,8 +92,21 @@ export class Overlay {
     this.host.setAttribute('data-streamguard', 'overlay');
     this.host.style.cssText =
       'position:absolute;top:12px;left:12px;z-index:9999;pointer-events:none;display:none;';
-    this.host.attachShadow({ mode: 'open' }).innerHTML = OVERLAY_HTML;
-    this.label = this.host.shadowRoot?.querySelector<HTMLSpanElement>('.label') ?? null;
+
+    try {
+      const shadow = this.host.attachShadow({ mode: 'open' });
+      const parsed = new DOMParser().parseFromString(OVERLAY_HTML, 'text/html');
+      const fragment = document.createDocumentFragment();
+      for (const node of [...parsed.head.childNodes, ...parsed.body.childNodes]) {
+        fragment.append(document.importNode(node, true));
+      }
+      shadow.append(fragment);
+      this.label = shadow.querySelector<HTMLSpanElement>('.label');
+    } catch {
+      this.host = null;
+      this.label = null;
+      return;
+    }
 
     try {
       player.appendChild(this.host);

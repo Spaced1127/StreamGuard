@@ -111,7 +111,10 @@ function manifestFor(target) {
     manifest.browser_specific_settings = {
       gecko: {
         id: 'streamguard@local',
-        strict_min_version: '128.0',
+        strict_min_version: '142.0',
+        data_collection_permissions: {
+          required: ['none'],
+        },
       },
     };
     manifest.background = { scripts: ['background.js'] };

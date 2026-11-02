@@ -21,3 +21,4 @@ jobs:
       - run: npm ci
       - run: npm run check
       - run: npm run build
+      - run: npx --yes web-ext lint --source-dir dist/firefox

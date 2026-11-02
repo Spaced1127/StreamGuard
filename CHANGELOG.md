@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.3.1 — 2026-11-01
+
+### Fixed
+
+- Firefox: the extension API shim now prefers the callback-compatible `chrome.*`
+  namespace. Firefox exposes both `chrome` and `browser`, but `browser.*` is
+  Promise-only, so callback-based settings and stats could hang.
+
+### Added
+
+- Diagnostic page attributes for automated browser tests:
+  `data-streamguard-bridge`, `data-streamguard-worker` and
+  `data-streamguard-background`.
+- Firefox manifest now declares `data_collection_permissions: none`; the
+  minimum Firefox version is 142 for that manifest key.
+
+### Changed
+
+- The overlay builds its shadow DOM with `DOMParser` instead of a dynamic
+  `innerHTML` assignment, clearing Mozilla's `UNSAFE_VAR_ASSIGNMENT` lint
+  warning.
+
+### Validated
+
+- Firefox 159: temporary add-on install, settings bridge, background
+  messaging, IVS worker hook, and a live ad break while playback continued.
+
 ## 0.3.0 — 2026-11-01
 
 ### Changed

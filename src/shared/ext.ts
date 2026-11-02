@@ -1,9 +1,9 @@
 import { DEFAULT_SETTINGS, type ShieldSettings } from './types';
 
 /**
- * Firefox exposes `browser`, Chrome exposes `chrome`. Firefox also exposes a
- * callback-compatible `chrome` namespace, so choosing `chrome` for both keeps
- * the extension free of a polyfill.
+ * Firefox exposes both `browser` and a callback-compatible `chrome` namespace;
+ * Chrome exposes `chrome`. Prefer `chrome` because every helper in this file
+ * uses callbacks, while Firefox's `browser.*` API is Promise-only.
  */
 type ExtensionApi = typeof chrome;
 
@@ -12,8 +12,8 @@ function resolveExtensionApi(): ExtensionApi {
     browser?: ExtensionApi;
     chrome?: ExtensionApi;
   };
-  if (candidate.browser?.runtime?.id) return candidate.browser;
   if (candidate.chrome?.runtime?.id) return candidate.chrome;
+  if (candidate.browser?.runtime?.id) return candidate.browser;
   // Tests and non-extension contexts never call these helpers with real APIs;
   // returning the (possibly undefined) global keeps module import side-effect free.
   return candidate.chrome as ExtensionApi;

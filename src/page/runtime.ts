@@ -531,6 +531,9 @@ export class PageRuntime {
 
     if (payload.source === 'worker') {
       this.lastWorkerAt = now;
+      if (!document.documentElement.hasAttribute('data-streamguard-worker')) {
+        document.documentElement.setAttribute('data-streamguard-worker', 'active');
+      }
     } else if (now - this.lastWorkerAt < 10_000) {
       // The player worker is actively reporting; ignore main-thread playlist
       // traffic (masters and duplicate media requests) to avoid state flicker.

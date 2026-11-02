@@ -8,7 +8,7 @@ playlists inside the player, detects ad breaks, and swaps to a clean alternate
 player-type feed when one is available. When it is not, it blanks stitched ad
 segments locally so their audio/video never reaches the decoder.
 
-> **Status: v0.3.0 — playlist shield + clean backup-stream swap.**
+> **Status: v0.3.1 — playlist shield + clean backup-stream swap.**
 > Live-tested against real Twitch stitched-ad breaks in a game category. Twitch
 > changes its ad delivery regularly; see [Limitations](#limitations) and
 > [Roadmap](#roadmap).
@@ -50,6 +50,14 @@ segments locally so their audio/video never reaches the decoder.
 - Per-tab toolbar badge (`AD` while a break is handled, break count otherwise).
 - Chrome/Edge and Firefox MV3 manifests from one TypeScript codebase.
 
+## Validation status
+
+- **Chromium (Chrome/Edge/Brave):** live stitched-ad break captured, clean
+  backup feed served, playback continued through the break.
+- **Firefox 159:** temporary add-on install, settings bridge, background
+  messaging, IVS worker hook and a live ad break were verified automatically;
+  the blocking overlay stayed active while playback continued.
+
 ## Not yet
 
 - Ad breaks where **every** player type is ad-laden (no clean backup exists).
@@ -60,8 +68,8 @@ segments locally so their audio/video never reaches the decoder.
 - VODs and clips are intentionally excluded — their playlists are not live and
   blanking segments would break playback.
 - Mobile apps and the desktop Twitch client. This is a browser extension.
-- Firefox live validation. The Firefox 128+ manifest and code paths are built,
-  but live testing so far has been on Chrome for Testing.
+- Full Firefox ad-break coverage is still a short smoke test rather than a
+  long soak; the run did detect and handle one break while playback continued.
 
 ## Install (development build)
 
@@ -81,11 +89,15 @@ npm run build
 3. **Load unpacked** → select `dist/chrome`.
 4. Open a live Twitch channel.
 
-**Firefox** (128+)
+**Firefox** (142+)
 
 1. Open `about:debugging#/runtime/this-firefox`.
 2. **Load Temporary Add-on** → select `dist/firefox/manifest.json`.
 3. Open a live Twitch channel.
+
+The Firefox add-on ID is `streamguard@local`. After rebuilding, reload the
+temporary add-on; Firefox may require removing and re-adding it if the ID or
+manifest changed.
 
 After changing source, run `npm run build` and reload the extension and tab.
 
@@ -239,7 +251,7 @@ are implemented and live-tested.
   quality ladder re-selection).
 - Demand-driven backup attempts for CSAI ads, using real player ad requests as
   the trigger.
-- More ad overlay/ad-slot hiding, Firefox live validation, and an automated
+- More ad overlay/ad-slot hiding, Firefox ad-break coverage, and an automated
   end-to-end harness against recorded playlist fixtures.
 - Options page, localization, and better first-break latency.
 
