@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.3 — 2026-11-01
+
+### Changed
+
+- Release archives now include `INSTALL.md`, `LICENSE` and `NOTICE` at the
+  archive root.
+- GitHub release notes are generated from the same `INSTALL.md` guide, so the
+  download page and the packaged instructions cannot drift.
+
 ## 0.3.2 — 2026-11-01
 
 ### Added

@@ -31,9 +31,12 @@ async function addDirectoryToZip(zip, directory, prefix = '') {
   }
 }
 
-async function createArchive(sourceDir, fileName) {
+async function createArchive(sourceDir, fileName, extraFiles = []) {
   const zip = new JSZip();
   await addDirectoryToZip(zip, sourceDir);
+  for (const [name, contents] of extraFiles) {
+    zip.file(name, contents);
+  }
   const buffer = await zip.generateAsync({
     type: 'nodebuffer',
     compression: 'DEFLATE',
@@ -48,8 +51,10 @@ async function createArchive(sourceDir, fileName) {
 
 async function verifyArchive(filePath) {
   const archive = await JSZip.loadAsync(await readFile(filePath));
-  if (!archive.file('manifest.json')) {
-    throw new Error(`${path.basename(filePath)} does not have manifest.json at the archive root.`);
+  for (const required of ['manifest.json', 'INSTALL.md', 'LICENSE', 'NOTICE']) {
+    if (!archive.file(required)) {
+      throw new Error(`${path.basename(filePath)} is missing ${required} at the archive root.`);
+    }
   }
 }
 
@@ -73,8 +78,23 @@ for (const [target, manifest] of [
 await rm(releaseDir, { recursive: true, force: true });
 await mkdir(releaseDir, { recursive: true });
 
-const chromeZip = await createArchive(chromeDir, `streamguard-chrome-v${version}.zip`);
-const firefoxXpi = await createArchive(firefoxDir, `streamguard-firefox-v${version}.xpi`);
+const installMarkdown = await readFile(path.join(root, 'INSTALL.md'), 'utf8');
+const extraDocs = [
+  ['INSTALL.md', installMarkdown],
+  ['LICENSE', await readFile(path.join(root, 'LICENSE'))],
+  ['NOTICE', await readFile(path.join(root, 'NOTICE'))],
+];
+
+const chromeZip = await createArchive(
+  chromeDir,
+  `streamguard-chrome-v${version}.zip`,
+  extraDocs,
+);
+const firefoxXpi = await createArchive(
+  firefoxDir,
+  `streamguard-firefox-v${version}.xpi`,
+  extraDocs,
+);
 await verifyArchive(chromeZip);
 await verifyArchive(firefoxXpi);
 
@@ -85,40 +105,24 @@ for (const asset of [chromeZip, firefoxXpi]) {
 }
 await writeFile(path.join(releaseDir, 'SHA256SUMS.txt'), `${checksumLines.join('\n')}\n`);
 
+const installSection = installMarkdown.replace(/^# .*\r?\n+/, '').trim();
+
 const notes = `# StreamGuard v${version}
 
 A local-first ad shield for Twitch live streams. Playlist stripping plus clean
 backup-stream swapping, with no proxy server, account, or telemetry.
 
-## Artifacts
+## Release artifacts
 
 - \`streamguard-chrome-v${version}.zip\` — Chrome, Brave and Edge (unpacked)
 - \`streamguard-firefox-v${version}.xpi\` — Firefox 142+ (unsigned; temporary add-on)
 - \`SHA256SUMS.txt\` — SHA-256 checksums for both archives
 
-## Chrome / Brave / Edge
+Every archive also contains \`INSTALL.md\`, \`LICENSE\` and \`NOTICE\` at its root.
 
-1. Download and unzip \`streamguard-chrome-v${version}.zip\`.
-2. Open \`chrome://extensions\`, \`brave://extensions\` or \`edge://extensions\`.
-3. Enable **Developer mode**.
-4. Choose **Load unpacked** and select the unzipped folder.
-5. Open a live Twitch channel.
+## Installation
 
-For Brave, set **Shields down** for \`twitch.tv\` while testing, otherwise
-Brave's own blocking can interfere with Twitch playback and token requests.
-
-## Firefox 142+
-
-The attached XPI is intentionally unsigned. Release Firefox will refuse to
-install it permanently, so for now:
-
-1. Open \`about:debugging#/runtime/this-firefox\`.
-2. Choose **Load Temporary Add-on**.
-3. Select \`streamguard-firefox-v${version}.xpi\`.
-
-The add-on is removed when Firefox restarts. For permanent distribution,
-submit the XPI to addons.mozilla.org for signing; see \`docs/PUBLISHING.md\`
-in the repository.
+${installSection}
 
 ## Verify downloads
 
@@ -129,7 +133,7 @@ sha256sum -c SHA256SUMS.txt
 On Windows PowerShell, compare \`Get-FileHash <file> -Algorithm SHA256\` with
 the values in \`SHA256SUMS.txt\`.
 
-## Notes
+## Release notes
 
 - No data collection or external servers. Requests go only to Twitch.
 - Live-tested on Chromium and Firefox 159, including real stitched-ad breaks.

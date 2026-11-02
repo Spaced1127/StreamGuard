@@ -8,7 +8,7 @@ playlists inside the player, detects ad breaks, and swaps to a clean alternate
 player-type feed when one is available. When it is not, it blanks stitched ad
 segments locally so their audio/video never reaches the decoder.
 
-> **Status: v0.3.2 — playlist shield + clean backup-stream swap.**
+> **Status: v0.3.3 — playlist shield + clean backup-stream swap.**
 > Live-tested against real Twitch stitched-ad breaks in a game category. Twitch
 > changes its ad delivery regularly; see [Limitations](#limitations) and
 > [Roadmap](#roadmap).
@@ -26,6 +26,10 @@ Get the latest build from
 
 See [docs/PUBLISHING.md](docs/PUBLISHING.md) for store submission and signing
 details, and `SHA256SUMS.txt` in each release for verification.
+
+**Full installation, updating and troubleshooting guide: [INSTALL.md](INSTALL.md).**
+The same guide is included inside every release archive and in the GitHub
+release notes.
 
 ## What works today
 

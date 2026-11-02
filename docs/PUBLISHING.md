@@ -15,7 +15,7 @@ the same everywhere; only the package and store listing differ.
 | `RELEASE_NOTES.md` | GitHub Release body |
 
 Both archives have `manifest.json` at the archive root, as required by the
-stores.
+stores, plus `INSTALL.md`, `LICENSE` and `NOTICE`.
 
 ## GitHub Releases
 
