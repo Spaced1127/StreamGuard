@@ -2,11 +2,13 @@ import { describe, expect, it } from 'vitest';
 import { blankMediaBytes } from './blank-media';
 import { PlaylistEngine, urlPathKey } from './engine';
 import {
+  codecFamily,
   createMediaState,
   detectAdMarkers,
   parseAttributeList,
   parseMasterPlaylist,
   pickVariant,
+  preferAvcMasterPlaylist,
   processMediaPlaylist,
 } from './playlist';
 
@@ -250,6 +252,69 @@ describe('parseMasterPlaylist', () => {
 
   it('does not mistake a media playlist for a master', () => {
     expect(parseMasterPlaylist(cleanPlaylist()).isMaster).toBe(false);
+  });
+
+  it('classifies codec families', () => {
+    expect(codecFamily('avc1.64002a,mp4a.40.2')).toBe('avc');
+    expect(codecFamily('hvc1.1.6.L120.90,mp4a.40.2')).toBe('hevc');
+    expect(codecFamily('av01.0.08M.08,mp4a.40.2')).toBe('av1');
+    expect(codecFamily(null)).toBe('unknown');
+  });
+
+  it('removes HEVC/AV1 variants when AVC is available', () => {
+    const enhanced = [
+      '#EXTM3U',
+      '#EXT-X-STREAM-INF:BANDWIDTH=20000000,RESOLUTION=3840x2160,FRAME-RATE=60.000,CODECS="hvc1.1.6.L150.90,mp4a.40.2"',
+      'https://video-edge-abc.abs.hls.ttvnw.net/v1/playlist/2160p60-hevc.m3u8',
+      '#EXT-X-STREAM-INF:BANDWIDTH=12000000,RESOLUTION=3840x2160,FRAME-RATE=60.000,CODECS="av01.0.08M.08,mp4a.40.2"',
+      'https://video-edge-abc.abs.hls.ttvnw.net/v1/playlist/2160p60-av1.m3u8',
+      '#EXT-X-STREAM-INF:BANDWIDTH=6000000,RESOLUTION=1920x1080,FRAME-RATE=60.000,CODECS="avc1.64002a,mp4a.40.2"',
+      'https://video-edge-abc.abs.hls.ttvnw.net/v1/playlist/1080p60-avc.m3u8',
+      '#EXT-X-STREAM-INF:BANDWIDTH=3000000,RESOLUTION=1280x720,FRAME-RATE=60.000,CODECS="avc1.4d002a,mp4a.40.2"',
+      'https://video-edge-abc.abs.hls.ttvnw.net/v1/playlist/720p60-avc.m3u8',
+    ].join('\n');
+
+    const result = preferAvcMasterPlaylist(enhanced);
+    expect(result.changed).toBe(true);
+    expect(result.hasEnhancedVariants).toBe(true);
+    expect(result.hasAvcVariants).toBe(true);
+    expect(result.text).not.toContain('hvc1');
+    expect(result.text).not.toContain('av01');
+    expect(result.text).toContain('1080p60-avc');
+    expect(result.text).toContain('720p60-avc');
+
+    const parsed = parseMasterPlaylist(result.text);
+    expect(parsed.variants).toHaveLength(2);
+    expect(parsed.variants.every((variant) => codecFamily(variant.codecs) === 'avc')).toBe(true);
+  });
+
+  it('leaves an enhanced-only master untouched', () => {
+    const enhancedOnly = [
+      '#EXTM3U',
+      '#EXT-X-STREAM-INF:BANDWIDTH=20000000,RESOLUTION=3840x2160,FRAME-RATE=60.000,CODECS="hvc1.1.6.L150.90,mp4a.40.2"',
+      'https://video-edge-abc.abs.hls.ttvnw.net/v1/playlist/2160p60-hevc.m3u8',
+    ].join('\n');
+
+    const result = preferAvcMasterPlaylist(enhancedOnly);
+    expect(result.changed).toBe(false);
+    expect(result.text).toBe(enhancedOnly);
+    expect(result.hasEnhancedVariants).toBe(true);
+    expect(result.hasAvcVariants).toBe(false);
+  });
+
+  it('filters backup variant selection by codec', () => {
+    const variants = parseMasterPlaylist(
+      [
+        '#EXTM3U',
+        '#EXT-X-STREAM-INF:BANDWIDTH=20000000,RESOLUTION=3840x2160,CODECS="hvc1.1.6.L150.90,mp4a.40.2"',
+        'https://example.com/hevc.m3u8',
+        '#EXT-X-STREAM-INF:BANDWIDTH=3000000,RESOLUTION=1280x720,CODECS="avc1.4d002a,mp4a.40.2"',
+        'https://example.com/avc.m3u8',
+      ].join('\n'),
+    );
+
+    expect(pickVariant(variants, null)?.url).toContain('hevc.m3u8');
+    expect(pickVariant(variants, null, null, 'avc')?.url).toContain('avc.m3u8');
   });
 });
 

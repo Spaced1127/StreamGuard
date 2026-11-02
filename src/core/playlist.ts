@@ -198,25 +198,110 @@ export function parseMasterPlaylist(text: string): MasterPlaylist {
   return { isMaster: true, variants };
 }
 
+export type CodecFamily = 'avc' | 'hevc' | 'av1' | 'unknown';
+
+/** Classify an HLS CODECS attribute without throwing on missing values. */
+export function codecFamily(codecs: string | null): CodecFamily {
+  if (!codecs) return 'unknown';
+  for (const part of String(codecs).toLowerCase().split(',')) {
+    const codec = part.trim();
+    if (codec.startsWith('avc')) return 'avc';
+    if (codec.startsWith('hev') || codec.startsWith('hvc')) return 'hevc';
+    if (codec.startsWith('av0')) return 'av1';
+  }
+  return 'unknown';
+}
+
+export interface AvcPreferenceResult {
+  text: string;
+  changed: boolean;
+  hasEnhancedVariants: boolean;
+  hasAvcVariants: boolean;
+}
+
 /**
- * Pick the variant closest to a requested resolution/quality. Used later by
- * the clean backup-stream swap: the backup master playlist should match the
- * quality the viewer is already watching.
+ * Enhanced broadcasts expose 2K/4K HEVC or AV1 variants. Mixing those with an
+ * AVC backup feed (or feeding an AVC blank segment into an HEVC decoder) makes
+ * Twitch's player throw error #4000 on Chromium/Brave.
+ *
+ * If the master offers both enhanced and AVC variants, drop the enhanced
+ * variants so the player stays on AVC for the whole session. If the stream is
+ * enhanced-only, return it untouched and let the caller disable ad handling
+ * rather than risk breaking playback.
+ */
+export function preferAvcMasterPlaylist(text: string): AvcPreferenceResult {
+  const parsed = parseMasterPlaylist(text);
+  const families = parsed.variants.map((variant) => codecFamily(variant.codecs));
+  const hasEnhancedVariants = families.some((family) => family === 'hevc' || family === 'av1');
+  const hasAvcVariants = families.includes('avc');
+
+  const unchanged: AvcPreferenceResult = {
+    text,
+    changed: false,
+    hasEnhancedVariants,
+    hasAvcVariants,
+  };
+
+  if (!parsed.isMaster || !hasEnhancedVariants || !hasAvcVariants) return unchanged;
+
+  const lines = text.split(/\r?\n/);
+  const remove = new Set<number>();
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index] ?? '';
+    if (!line.startsWith('#EXT-X-STREAM-INF')) continue;
+
+    const colon = line.indexOf(':');
+    const attributes = parseAttributeList(colon === -1 ? '' : line.slice(colon + 1));
+    const family = codecFamily(attributes.CODECS ?? null);
+    if (family !== 'hevc' && family !== 'av1') continue;
+
+    remove.add(index);
+    for (let next = index + 1; next < lines.length; next += 1) {
+      const candidate = lines[next] ?? '';
+      if (!candidate.trim() || candidate.startsWith('#')) continue;
+      remove.add(next);
+      break;
+    }
+  }
+
+  if (remove.size === 0) return unchanged;
+
+  const adjusted = lines.filter((_, index) => !remove.has(index)).join('\n');
+  const check = parseMasterPlaylist(adjusted);
+  if (!check.isMaster || check.variants.length === 0) return unchanged;
+
+  return {
+    text: adjusted,
+    changed: true,
+    hasEnhancedVariants: true,
+    hasAvcVariants: true,
+  };
+}
+
+/**
+ * Pick the variant closest to a requested resolution/quality. Used by the
+ * backup-stream swap so the alternate feed matches the viewer's quality. Pass
+ * `codec` to restrict the candidate set to a compatible decoder family.
  */
 export function pickVariant(
   master: MasterPlaylist,
   resolution: string | null,
   frameRate?: number | null,
+  codec?: CodecFamily | null,
 ): Variant | null {
-  if (master.variants.length === 0) return null;
+  const candidates = codec
+    ? master.variants.filter((variant) => codecFamily(variant.codecs) === codec)
+    : master.variants;
+  if (candidates.length === 0) return null;
 
   const target = parseResolution(resolution);
-  if (!target) return master.variants[0] ?? null;
+  if (!target) return candidates[0] ?? null;
 
   let best: Variant | null = null;
   let bestScore = Number.POSITIVE_INFINITY;
 
-  for (const variant of master.variants) {
+  for (const variant of candidates) {
     const candidate = parseResolution(variant.resolution);
     if (!candidate) continue;
     const areaDiff = Math.abs(candidate.width * candidate.height - target.width * target.height);
@@ -229,7 +314,7 @@ export function pickVariant(
     }
   }
 
-  return best ?? master.variants[0] ?? null;
+  return best ?? candidates[0] ?? null;
 }
 
 function parseResolution(value: string | null): { width: number; height: number } | null {

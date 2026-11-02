@@ -6,7 +6,7 @@ playlists inside the player, detects ad breaks, and swaps to a clean alternate
 player-type feed when one is available. When it is not, it blanks stitched ad
 segments locally so their audio/video never reaches the decoder.
 
-> **Status: v0.2 — playlist shield + clean backup-stream swap.**
+> **Status: v0.2.1 — playlist shield + clean backup-stream swap.**
 > Live-tested against real Twitch stitched-ad breaks in a game category. Twitch
 > changes its ad delivery regularly; see [Limitations](#limitations) and
 > [Roadmap](#roadmap).
@@ -26,8 +26,13 @@ segments locally so their audio/video never reaches the decoder.
     `mobile_web`, `embed`);
   - fetches each candidate master/media playlist, rejects ad-laden ones, and
     serves a clean one in place of the ad playlist;
+  - only selects AVC backup variants, so a codec switch cannot break playback;
   - falls back to the Android `autoplay` 360p feed when every source feed is
     ad-laden, and never pins that low-quality fallback across breaks.
+- **Handles 2K/4K enhanced streams.** If a master offers HEVC/AV1 and AVC
+  variants, the enhanced variants are removed so playback stays AVC and cannot
+  hit Twitch error #4000. Enhanced-only streams are left untouched (ads may
+  play) rather than risk a black screen.
 - Blanks stitched ad media locally when no clean backup exists.
 - Ignores Twitch's persistent `twitch-trigger` stream marker, which appears on
   every playlist (including during normal playback) and is **not** an ad
@@ -203,6 +208,9 @@ propagated to open tabs immediately.
 - **Quality can drop during a break.** When every source-quality backup is
   ad-laden, the current break uses the 360p `autoplay` feed. The main feed
   returns when the break ends.
+- **Enhanced streams may be limited to AVC.** 2K/4K HEVC/AV1 variants are
+  removed when an AVC ladder exists, avoiding Twitch error #4000. Enhanced-only
+  streams are left untouched, so ads can still play there.
 - **Some breaks still leak.** If Twitch marks a break but no player type
   returns a clean playlist, stripping is the only fallback. Pure CSAI breaks
   that never touch the playlist remain hard to detect without player internals.

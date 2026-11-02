@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.2.1 — 2026-11-01
+
+### Fixed
+
+- Twitch player error #4000 / black screen when blocking ads on 2K/4K enhanced
+  (HEVC/AV1) broadcasts, especially in Brave. Master playlists are now
+  normalized to AVC when an AVC ladder is available, backup selection is
+  restricted to AVC variants, and enhanced-only streams are left untouched
+  instead of being rewritten.
+- Rebuilt playlist responses now drop stale `content-encoding`,
+  `content-length`, `transfer-encoding`, `etag` and `last-modified` headers.
+  Copying the original compression headers onto a decompressed body could make
+  the player fail on some network stacks.
+
 ## 0.2.0 — 2026-11-01
 
 ### Added

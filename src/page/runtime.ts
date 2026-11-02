@@ -10,6 +10,7 @@ import {
 } from '../core/backup';
 import { PlaylistEngine, type EngineResult } from '../core/engine';
 import { requestUrl } from '../core/http';
+import { preferAvcMasterPlaylist } from '../core/playlist';
 import { postToWindow } from '../shared/messages';
 import {
   DEFAULT_SETTINGS,
@@ -159,6 +160,7 @@ export class PageRuntime {
   private lastWorkerAt = 0;
   private cleanStreak = 0;
   private breakUsedBackup = false;
+  private disableAdHandling = false;
   private loggedClientContext = false;
   private postTimer: number | null = null;
   private channelTimer: number | null = null;
@@ -237,13 +239,33 @@ export class PageRuntime {
 
   processPlaylist(url: string, text: string): EngineResult | null {
     if (!this.settings.enabled) return null;
-    return this.engine.process(url, text, {
+
+    // Enhanced-only streams cannot be safely rewritten with AVC media.
+    if (this.disableAdHandling && !text.includes('#EXT-X-STREAM-INF')) return null;
+
+    const result = this.engine.process(url, text, {
       rewriteTrackingUrls: this.settings.rewriteTrackingUrls,
     });
+
+    if (result.kind === 'master') {
+      const adjusted = preferAvcMasterPlaylist(result.text);
+      this.disableAdHandling = adjusted.hasEnhancedVariants && !adjusted.hasAvcVariants;
+      if (adjusted.changed) {
+        result.text = adjusted.text;
+        this.log('removed enhanced (HEVC/AV1) variants to keep playback on AVC');
+      }
+      if (this.disableAdHandling) {
+        this.log('enhanced-only stream: ad handling disabled to avoid player error #4000');
+      }
+    }
+
+    return result;
   }
 
   isAdMedia(url: string): boolean {
-    return this.settings.enabled && this.engine.isAdMedia(url);
+    return (
+      this.settings.enabled && !this.disableAdHandling && this.engine.isAdMedia(url)
+    );
   }
 
   /**

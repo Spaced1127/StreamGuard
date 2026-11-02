@@ -24,9 +24,23 @@ export function requestUrl(input: RequestInfo | URL | string): string {
 /** Rebuild a consumed response with rewritten playlist text. */
 export function createResponseWithText(response: Response, text: string): Response {
   const headers = new Headers(response.headers);
-  headers.delete('content-length');
+
+  // The fetch body is already decompressed. Copying the original encoding or
+  // length headers would make the player try to inflate plain text (or read a
+  // stale length), producing black screens / player errors on some networks.
+  for (const header of [
+    'content-encoding',
+    'content-length',
+    'transfer-encoding',
+    'etag',
+    'last-modified',
+  ]) {
+    headers.delete(header);
+  }
+
   const bytes = new TextEncoder().encode(text);
   headers.set('content-length', String(bytes.byteLength));
+  headers.set('cache-control', 'no-store');
 
   const status = response.status >= 200 && response.status <= 599 ? response.status : 200;
   const output = new Response(bytes, {

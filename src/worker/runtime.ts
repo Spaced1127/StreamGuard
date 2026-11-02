@@ -16,6 +16,7 @@ import {
   detectAdMarkers,
   parseMasterPlaylist,
   pickVariant,
+  preferAvcMasterPlaylist,
   type Variant,
 } from '../core/playlist';
 import { isTokenResponseMessage, isWorkerConfigMessage } from '../shared/messages';
@@ -43,6 +44,10 @@ interface ChannelBackup {
   masters: Map<string, { text: string; at: number }>;
   failedTypes: Map<string, number>;
   lastAllFailedAt: number;
+  /** Master was rewritten to AVC-only because enhanced variants were present. */
+  forcedAvc: boolean;
+  /** Stream is enhanced-only (no AVC variant); do not touch its media. */
+  disableAdHandling: boolean;
 }
 
 interface BackupResult {
@@ -237,7 +242,7 @@ function boot(): void {
     frameRate: number | null,
   ): Promise<BackupResult | null> {
     const state = backupState;
-    if (!config.backupStream || !state || !state.channel) return null;
+    if (!config.backupStream || !state || !state.channel || state.disableAdHandling) return null;
 
     const now = Date.now();
     if (now - state.lastAllFailedAt < 8_000) return null;
@@ -295,8 +300,9 @@ function boot(): void {
       }
       log('backup master ok', playerType, `variants=${master.variants.length}`);
 
-      const variant = pickVariant(master, resolution, frameRate);
+      const variant = pickVariant(master, resolution, frameRate, 'avc');
       if (!variant) {
+        log('backup has no AVC variant', playerType);
         state.failedTypes.set(playerType, Date.now());
         continue;
       }
@@ -328,7 +334,7 @@ function boot(): void {
       }
       state.failedTypes.delete(playerType);
       state.lastAllFailedAt = 0;
-      log('clean backup found', playerType, variant.resolution ?? 'unknown', `remaining=${remaining}ms`);
+      log('clean backup found', playerType, variant.resolution ?? 'unknown', variant.codecs ?? '?', `remaining=${remaining}ms`);
       return { text: mediaText, playerType };
     }
 
@@ -354,7 +360,7 @@ function boot(): void {
     if (!config.enabled || !url) return nativeFetch(input, init);
 
     try {
-      if (engine.isAdMedia(url)) {
+      if (!backupState?.disableAdHandling && engine.isAdMedia(url)) {
         log('blanking ad media', url);
         return createBlankMediaResponse();
       }
@@ -379,6 +385,14 @@ function boot(): void {
       let output = text;
       let backupType: string | null = null;
 
+      // Enhanced-only streams (2K/4K HEVC/AV1 with no AVC ladder) cannot be
+      // safely blanked or backed up with AVC media: Twitch throws #4000. Leave
+      // their media playlists untouched and let the player behave normally.
+      if (backupState?.disableAdHandling && !text.includes('#EXT-X-STREAM-INF')) {
+        log('enhanced-only stream: leaving media playlist untouched');
+        return createResponseWithText(response, text);
+      }
+
       try {
         const result = engine.process(url, text, {
           rewriteTrackingUrls: config.rewriteTrackingUrls,
@@ -388,7 +402,11 @@ function boot(): void {
           const masterChannel = channelFromHlsUrl(url) ?? channel;
           if (masterChannel) {
             channel = masterChannel;
-            const parsed = parseMasterPlaylist(text);
+
+            const adjusted = preferAvcMasterPlaylist(text);
+            output = adjusted.text;
+
+            const parsed = parseMasterPlaylist(adjusted.text);
             const resolvedVariants = parsed.variants.map((variant) => ({
               ...variant,
               url: resolveUrl(variant.url, url),
@@ -396,6 +414,8 @@ function boot(): void {
             const variantByKey = new Map(
               resolvedVariants.map((variant) => [urlPathKey(variant.url), variant]),
             );
+            const forcedAvc = adjusted.changed;
+            const disableAdHandling = adjusted.hasEnhancedVariants && !adjusted.hasAvcVariants;
 
             if (!backupState || backupState.channel !== masterChannel) {
               backupState = {
@@ -409,11 +429,22 @@ function boot(): void {
                 masters: new Map(),
                 failedTypes: new Map(),
                 lastAllFailedAt: 0,
+                forcedAvc,
+                disableAdHandling,
               };
             } else {
               backupState.usherUrl = url;
               backupState.variants = resolvedVariants;
               backupState.variantByKey = variantByKey;
+              backupState.forcedAvc = forcedAvc;
+              backupState.disableAdHandling = disableAdHandling;
+            }
+
+            if (forcedAvc) {
+              log('removed enhanced (HEVC/AV1) variants to keep playback on AVC');
+            }
+            if (disableAdHandling) {
+              log('enhanced-only stream: ad handling disabled to avoid player error #4000');
             }
 
             log(
