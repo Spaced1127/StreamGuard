@@ -31,6 +31,13 @@ details, and `SHA256SUMS.txt` in each release for verification.
 The same guide is included inside every release archive and in the GitHub
 release notes.
 
+## Screenshots
+
+| Active session | Idle |
+| :---: | :---: |
+| <a href="screenshots/popup-active.png"><img src="screenshots/popup-active.png" alt="StreamGuard popup showing 8 ad breaks and 8 clean backup feeds" width="320"></a> | <a href="screenshots/popup-idle.png"><img src="screenshots/popup-idle.png" alt="StreamGuard popup on a non-Twitch tab" width="320"></a> |
+| 8 breaks handled, 8 clean backup feeds | Idle state when the active tab is not Twitch |
+
 ## What works today
 
 - Hooks Twitch's IVS player **worker** and the page-level `fetch` before the
